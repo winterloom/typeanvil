@@ -693,7 +693,7 @@ def render_gallery_md(
                 lines.append("")
                 lines.append(
                     f"Status: **{status}** · tracked in "
-                    f"[{_escape(issue)}](https://linear.app/whitelodge/issue/{_escape(issue)})"
+                    f"[{_escape(issue)}](https://linear.app/winterloom/issue/{_escape(issue)})"
                 )
                 lines.append("")
                 lines.append(f"**Expectation:** {expectation}")
