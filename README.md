@@ -5,62 +5,109 @@
   </picture>
 </p>
 
-TypeAnvil is an open-source HTML → PDF typesetting engine written in Rust. It
-turns HTML documents with paged-media CSS into production PDFs for reports,
-invoices, letters, papers, and books.
+TypeAnvil is an open-source HTML and Markdown → PDF typesetting engine written
+in Rust. It turns documents with paged-media CSS into production PDFs for
+reports, invoices, letters, papers, and books.
 
-It is built for developers who need print-quality pagination without a
-commercial rendering engine or a headless browser farm.
+It is built for developers, and the AI agents they run, who need print-quality
+pagination without a commercial rendering engine or a headless browser farm.
+
+TypeAnvil is a document compiler, not a browser. It runs no JavaScript and
+does not cover all of CSS. If your documents depend on scripts or on
+browser-only layout, use a browser-based renderer instead.
+
+Contributing as an AI agent? Read [AGENTS.md](AGENTS.md) first.
 
 ## Why TypeAnvil
 
-- **Deterministic output.** Identical input produces byte-identical PDFs.
-  Diff-test your documents in CI.
+- **Deterministic output.** The same input, flags, engine version, and
+  installed fonts produce a byte-identical PDF. Diff-test your documents in CI.
+  Fonts count as input: a different font set can change the output.
+- **Built for agents.** An MCP server, a JSON capability manifest, JSON
+  diagnostics, and layout assertions let an agent render, check, and fix a
+  document in a loop without a human. See [Use with AI agents](#use-with-ai-agents).
 - **Typography by default.** Measured text shaping, line breaking, hyphenation,
   and widow/orphan handling are part of the engine's typography pipeline.
-- **Paged-media CSS support.** The engine supports `@page` rules with margin
-  boxes, named pages, page counters, running headers, footnotes, leader fills,
-  multi-column layout, floats, and repeating table headers and footers. See the
-  feature specifications for exact behavior and known gaps.
-- **Accessibility features.** PDFs carry a tagged structure tree by
-  default (`--no-tagged` turns it off); `--ua` additionally validates against
-  PDF/UA-1.
+- **Paged-media CSS.** `@page` rules with margin boxes, named pages, page
+  counters, running headers and running elements, footnotes, leader fills,
+  multi-column layout, floats, and repeating table headers and footers.
+- **Accessibility.** PDFs carry a tagged structure tree by default
+  (`--no-tagged` turns it off). `--ua` also validates against PDF/UA-1.
 
 PrinceXML and Chromium are comparison tools. CSS specifications define
 TypeAnvil's expected behavior.
 
-## Getting started
+## Install
 
-Build from source with a current stable Rust toolchain:
+### Release binary (recommended)
+
+[GitHub Releases](https://github.com/winterloom/typeanvil/releases) has one
+archive per platform plus a `SHA256SUMS` file. Targets:
+`aarch64-apple-darwin`, `x86_64-apple-darwin`, `x86_64-unknown-linux-gnu`,
+`x86_64-unknown-linux-musl`, and `aarch64-unknown-linux-gnu`.
+
+Example for macOS on Apple Silicon (change `TARGET` for your platform):
 
 ```bash
-git clone https://github.com/whitelodge-esoteric/typeanvil
+VERSION=2026.11.0
+TARGET=aarch64-apple-darwin
+gh release download "v$VERSION" -R winterloom/typeanvil \
+  -p SHA256SUMS -p "typeanvil-$VERSION-$TARGET.tar.gz"
+shasum -a 256 -c SHA256SUMS --ignore-missing
+tar -xzf "typeanvil-$VERSION-$TARGET.tar.gz"
+sudo install "typeanvil-$VERSION-$TARGET/typeanvil" /usr/local/bin/typeanvil
+typeanvil --version
+```
+
+Without the GitHub CLI, download the same two files from the release page.
+The rest of this README assumes `typeanvil` is on your `PATH`.
+
+### Build from source
+
+You need a current stable Rust toolchain:
+
+```bash
+git clone https://github.com/winterloom/typeanvil
 cd typeanvil
 cargo build --release --manifest-path engine/Cargo.toml
 ```
 
-Render a document:
+The binary is `engine/target/release/typeanvil`. Copy it onto your `PATH`, or
+call it by that path.
+
+**Versions.** Releases use CalVer tags (`vYYYY.M.N`), and a release binary
+prints that version (`typeanvil 2026.11.0`). A source build prints the version
+in `engine/Cargo.toml` instead. Include the commit hash in bug reports from
+source builds.
+
+### Container image
+
+Each release also publishes a Linux image with fonts included:
 
 ```bash
-./engine/target/release/typeanvil render input.html \
-  --page-width 8.5in --page-height 11in \
-  --margin-top 1in --margin-right 1in \
-  --margin-bottom 1in --margin-left 1in \
-  -o output.pdf
+docker run --rm -v "$PWD:/work" ghcr.io/winterloom/typeanvil:2026.11.0 \
+  render /work/input.html --page-width 8.5in --page-height 11in -o /work/output.pdf
 ```
 
-The full flag reference is in [docs/operations/cli.md](docs/operations/cli.md).
-The [architecture overview](docs/architecture/overview.md) explains the
-pipeline and module boundaries.
+See [Containers and packages](docs/guides/container.md). The npm package in
+`npm/` is not published yet, so `npx typeanvil` does not work.
 
-## Usage example
+### Fonts
 
-A report with chapter headers in the page margin and page numbers in the footer:
+The binary does not embed a fallback font. It reads Arial on macOS, or
+Liberation Sans from `/usr/share/fonts/typeanvil/` on Linux. On a bare Linux
+host, copy `docker/fonts/typeanvil/` there or use the container image. Details:
+[Getting started § How input files are resolved](docs/guides/getting-started.md#how-input-files-are-resolved).
+
+## Quick start
+
+Save this as `input.html`:
 
 ```html
 <!DOCTYPE html>
 <html>
 <head>
+<title>Quarterly Report</title>
 <style>
 @page {
   size: Letter;
@@ -69,27 +116,36 @@ A report with chapter headers in the page margin and page numbers in the footer:
   @bottom-center { content: "Page " counter(page) " of " counter(pages); }
 }
 h1 { string-set: chapter content(); }
-table { border-collapse: collapse; width: 100%; }
-th { background: #eee; }
+table { width: 100%; }
+th { background-color: #eee; }
 thead { display: table-header-group; }
 </style>
 </head>
 <body>
 <h1>Quarterly Report</h1>
 <p>Long content flows across pages with running headers and table pagination.</p>
-<table><!-- rows spanning many pages --></table>
+<table>
+  <thead><tr><th>Item</th><th>Value</th></tr></thead>
+  <tbody><tr><td>Revenue</td><td>1,000</td></tr></tbody>
+</table>
 </body>
 </html>
 ```
 
-The CLI accepts standalone HTML files and Markdown files. Inline `<style>`
-elements and local linked stylesheets are supported. JavaScript is not executed.
+Render it:
 
-### Markdown example
+```bash
+typeanvil render input.html --page-width 8.5in --page-height 11in -o output.pdf
+```
 
-A file with the extension `.md`, `.markdown` or `.mdown` is read as Markdown.
-The engine converts it to HTML and applies a built-in stylesheet, so the PDF
-looks finished with no CSS. YAML frontmatter sets the PDF title and author.
+`--page-width`, `--page-height` and `-o` are required. An `@page { size }`
+rule overrides them on the pages it matches. A successful run prints nothing
+and exits `0`.
+
+### Markdown
+
+A file ending in `.md`, `.markdown` or `.mdown` is read as Markdown and styled
+with a built-in stylesheet. YAML frontmatter sets the PDF title and author.
 
 ````markdown
 ---
@@ -110,43 +166,183 @@ A note with a footnote.[^1]
 ````
 
 ```bash
-typeanvil render notes.md \
-  --page-width 8.5in --page-height 11in \
+typeanvil render notes.md --page-width 8.5in --page-height 11in \
   --margin-top 1in --margin-right 1in --margin-bottom 1in --margin-left 1in \
   -o notes.pdf
 ```
 
-Add your own CSS with `--css style.css`, or drop the built-in stylesheet with
-`--no-default-css`. See the [Markdown to PDF guide](docs/guides/markdown.md).
+Add CSS with `--css style.css`, or drop the built-in stylesheet with
+`--no-default-css`. See [Markdown to PDF](docs/guides/markdown.md).
 
-## Feature status
+### Data templates
 
-See [the specifications](docs/specifications/) for exact contracts and known
-gaps. The [WPT harness](docs/specifications/wpt-conformance-harness.spec.md)
-and [release gate](docs/operations/release-gate.md) describe verification.
+Render a template with JSON data. The data is checked against the template's
+JSON Schema first. The repository includes an invoice and a report template:
+
+```bash
+typeanvil template-schema templates/invoice/invoice.tmpl.html
+typeanvil render templates/invoice/invoice.tmpl.html \
+  --data templates/invoice/invoice.example.json \
+  --page-width 8.5in --page-height 11in -o invoice.pdf
+```
+
+See [templates/README.md](templates/README.md).
+
+## Commands
+
+| Command | What it does |
+|---|---|
+| `typeanvil render` | Render an HTML or Markdown file (or a template with `--data`) to PDF. |
+| `typeanvil capabilities --json` | Print what this engine build supports, as JSON. |
+| `typeanvil template-schema <template>` | Print the JSON Schema a template's data must match. |
+| `typeanvil mcp` | Run the MCP server over stdio. |
+| `typeanvil call <tool>` | Run one MCP tool once: JSON request on stdin, JSON result on stdout. |
+
+Useful `render` flags:
+
+| Flag | Purpose |
+|---|---|
+| `--diagnostics json\|text` | Report CSS the engine ignored and layout problems (overflow, empty pages, font fallback). |
+| `--assert rules.json`, `--fail-on-assert` | Check layout goals (page count, keep-together, no overflow); exit `3` on failure. |
+| `--embed-source`, `--embed-data <file>` | Attach the source or data file inside the PDF. |
+| `--fetch none\|local\|allow-list`, `--max-pages`, `--timeout` | Safety limits for untrusted input; a stopped render exits `4`. |
+| `--title`, `--author`, `--no-tagged`, `--ua` | Metadata and accessibility. |
+
+Every flag, default, and exit code is in the [CLI reference](docs/guides/cli.md).
+
+## Use with AI agents
+
+TypeAnvil is designed as a feedback loop for agents: write the document,
+render it, read back what went wrong, fix it, repeat.
+
+**MCP server.** Add the installed binary to your client. Claude Code:
+
+```bash
+claude mcp add typeanvil -- typeanvil mcp --root "$HOME/reports"
+```
+
+Claude Desktop, Cursor and other JSON-configured clients:
+
+```json
+{ "mcpServers": { "typeanvil": { "command": "typeanvil", "args": ["mcp", "--root", "/path/to/reports"] } } }
+```
+
+`--root` limits file access to that folder (repeatable). Leave it out to allow
+every path the user can read. The server offers six tools: `render`,
+`validate`, `inspect_page`, `capabilities`, `explain`, and `templates`.
+
+**The loop:**
+
+1. `capabilities`: learn which CSS this build supports.
+2. Write the HTML or Markdown.
+3. `validate` (or `render --diagnostics json --assert rules.json`): get the
+   layout report and assertion results.
+4. Fix what the report names, then repeat step 3.
+5. `render`: produce the final PDF.
+
+**Without MCP**, `typeanvil call` runs the same tools from a script:
+
+```bash
+echo '{"document":{"path":"input.html"},"assertions":[{"kind":"page_count","max":3}]}' \
+  | typeanvil call validate
+```
+
+**Agent resources:**
+
+- [Agent authoring guide](docs/guides/agent-authoring.md): how to write HTML
+  that renders well, generated from the capability manifest.
+- [skills/typeanvil-authoring](skills/typeanvil-authoring/SKILL.md): a
+  ready-made agent skill.
+- [schemas/mcp/v1](schemas/mcp/v1/): JSON Schemas for every tool's input and
+  output.
+- [MCP guide](docs/guides/mcp.md) and the
+  [MCP tool contract](docs/specifications/mcp-tool-contract.spec.md).
+
+## Features and known gaps
+
+**Supported:** HTML and Markdown input; `@page` rules, margin boxes, named
+pages, page and pages counters, running strings and running elements;
+footnotes; cross-references and PDF bookmarks; fragmentation with widows,
+orphans, and `break-*`; tables with repeating headers; multi-column layout;
+floats; flexbox and basic grid; absolute and fixed positioning; vertical
+writing modes; images (PNG, JPEG, GIF, SVG); `@font-face` and OpenType
+features; hyphenation; MathML; tagged PDF and PDF/UA-1.
+
+**Known gaps:**
+
+- No JavaScript, browser APIs, or interactive layout.
+- Partial CSS coverage. Notable gaps include attribute selectors, `rowspan`,
+  `table-layout: fixed`, `clear`, column rules, grid `repeat()` and explicit
+  placement, and flex `order`.
+- Only `background-color` paints on elements and table cells. Background
+  images and gradients do not.
+- `vw`/`vh` resolve against a fixed 1024×768 viewport, not the page box.
+- No network access: `http://` and `https://` stylesheets, fonts, and images
+  are skipped. For untrusted input, also limit local file reads with
+  `--fetch local` and set `--max-pages` and `--timeout`.
+
+The [CSS support guide](docs/guides/css-support.md) lists every feature with
+its limits. `typeanvil capabilities --json` reports the same facts for the
+binary you are running.
+
+**Performance.** On the bundled corpus, TypeAnvil renders typical reports and
+invoices faster than PrinceXML, WeasyPrint, and headless Chrome; very large
+documents and wide tables can be slower. Method and full results:
+[benchmarks/RESULTS.md](benchmarks/RESULTS.md).
 
 ## Showcase
 
 Rendered output for every release lives in the
-[typeanvil-showcase](https://github.com/whitelodge-esoteric/typeanvil-showcase)
-repo and on its [Pages site](https://whitelodge-esoteric.github.io/typeanvil-showcase/).
-The [latest version](https://github.com/whitelodge-esoteric/typeanvil-showcase/tree/main/latest)
+[typeanvil-showcase](https://github.com/winterloom/typeanvil-showcase) repo and
+on its [Pages site](https://winterloom.github.io/typeanvil-showcase/). The
+[latest version](https://github.com/winterloom/typeanvil-showcase/tree/main/latest)
 link stays stable.
 
 ## Documentation
 
+- [Getting started](docs/guides/getting-started.md)
+- [CLI reference](docs/guides/cli.md)
+- [Paged media CSS](docs/guides/paged-media-css.md)
+- [CSS support](docs/guides/css-support.md)
+- [MCP server](docs/guides/mcp.md)
+- [Containers and packages](docs/guides/container.md)
 - [Architecture overview](docs/architecture/overview.md)
-- [CLI reference](docs/operations/cli.md)
 - [Feature specifications](docs/specifications/)
-- [Contributor and development guidelines](docs/conventions/development-guidelines.md)
-- [Documentation site](docs/operations/docs-site.md)
+
+## Repository layout
+
+| Path | Contents |
+|---|---|
+| `engine/` | The Rust engine and the `typeanvil` CLI |
+| `harness/` | WPT conformance harness and release gate |
+| `docs/` | Guides, specifications, architecture, and runbooks |
+| `docsite/` | Docusaurus site built from `docs/` |
+| `templates/` | Data templates (invoice, report) |
+| `skills/` | Bundled agent skill |
+| `schemas/mcp/` | MCP tool JSON Schemas |
+| `npm/` | npm wrapper packages (not yet published) |
+| `corpus/` | Real-world documents for regression and showcase |
+| `benchmarks/` | Engine benchmark scripts and results |
+
+## Contributing
+
+- **Spec first.** Every feature starts with a spec in `docs/specifications/`,
+  updated in the same change as the code.
+- **Build and test in the dev container:**
+  `./scripts/dev-container.sh cargo test --manifest-path /work/engine/Cargo.toml -j 2`.
+  See [the dev container runbook](docs/operations/dev-container.md).
+- **Run the gate** before you open a PR: `python3 scripts/gate.py`.
+- **Land through a PR.** Release branches reject direct pushes;
+  `scripts/land.py` opens the PR and enables auto-merge.
+- **Sign the CLA.** Read [CLA.md](CLA.md).
+
+Full guidelines:
+[development guidelines](docs/conventions/development-guidelines.md). Agents:
+[AGENTS.md](AGENTS.md).
 
 ## License
 
 TypeAnvil is free software under the
 [AGPL-3.0-only](https://www.gnu.org/licenses/agpl-3.0.html) license. The engine
 has no license check, watermark, activation flow, phone-home behavior, or
-feature gate. Read [CLA.md](CLA.md) for contribution terms.
-
-This repository documents the engine and its tooling. Public documentation for
-a hosted service will be linked separately when available.
+feature gate.

@@ -4,7 +4,7 @@ type: guide
 status: approved
 owner: maintainers
 created: 2026-10-25
-updated: 2026-10-25
+updated: 2026-11-11
 sidebar_position: 8
 tags: [guide, mcp, ai-native, cli]
 slug: /guides/mcp
@@ -17,7 +17,7 @@ can then render, check and inspect documents itself. The server is a
 subcommand of the normal binary, so it needs no separate install:
 
 ```bash
-npx -y typeanvil mcp
+typeanvil mcp
 ```
 
 The server talks MCP over stdio. It offers six tools:
@@ -49,8 +49,11 @@ The full contract is in
 
 ## Connect a client
 
-Each snippet starts the server with `npx`. To use an installed binary, put
-`typeanvil` in `command` and use `["mcp"]` as the arguments.
+**The npm package is not published yet**, so the `npx` snippets below work
+only after it is. Until then, install a release binary (see
+[Getting started](./getting-started.md)), put `typeanvil` in `command`, and
+use `["mcp"]` as the arguments. For Claude Code:
+`claude mcp add typeanvil -- typeanvil mcp`.
 
 **Claude Code:**
 
@@ -87,7 +90,7 @@ can access. To limit it to a folder, add `--root` (you can use it more than
 once):
 
 ```bash
-npx -y typeanvil mcp --root ~/reports
+typeanvil mcp --root ~/reports
 ```
 
 A path outside every root then returns the error `PATH_OUTSIDE_ROOT`.
