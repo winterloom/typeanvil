@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/schemas/mcp/v1/validate.output.schema.json",
+  "$id": "https://typeanvil.io/schemas/mcp/v1/validate.output.schema.json",
   "title": "validate — output",
   "type": "object",
   "required": ["environment", "ok", "page_count", "diagnostics", "assertions", "fonts"],

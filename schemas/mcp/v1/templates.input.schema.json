@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/schemas/mcp/v1/templates.input.schema.json",
+  "$id": "https://typeanvil.io/schemas/mcp/v1/templates.input.schema.json",
   "title": "templates — input",
   "description": "Contract 1.1. Fetch the data JSON Schema of a data template before writing data for it.",
   "type": "object",

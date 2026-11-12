@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/schemas/mcp/v1/capabilities.output.schema.json",
+  "$id": "https://typeanvil.io/schemas/mcp/v1/capabilities.output.schema.json",
   "title": "capabilities — output",
   "type": "object",
   "required": ["environment", "tools", "input_forms", "output_modes", "limits"],
