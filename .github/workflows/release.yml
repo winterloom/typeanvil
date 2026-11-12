@@ -293,6 +293,63 @@ jobs:
             | grep -qE '^[0-9]+$' && echo "non-root user ok"
           echo "smoke render ok: $(stat -c%s /tmp/smoke/out.pdf) bytes"
 
+  # Homebrew (CORE-137): generate the formula from SHA256SUMS and open a PR
+  # on the tap. DECIDED 2026-10-16: PR, not direct push. HOMEBREW_TAP_TOKEN
+  # (contents + pull-requests write on the tap) is OPTIONAL; absent = skip.
+  homebrew-bump:
+    needs: [derive-version, release]
+    runs-on: ubuntu-22.04
+    env:
+      TAP: winterloom/homebrew-tap
+      GH_TOKEN: ${{ secrets.HOMEBREW_TAP_TOKEN }}
+    steps:
+      - name: Check tap credentials
+        id: creds
+        run: |
+          if [ -n "${GH_TOKEN:-}" ]; then
+            echo "bump=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "bump=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::HOMEBREW_TAP_TOKEN is not set — skipping Homebrew bump."
+          fi
+
+      - uses: actions/checkout@v4
+
+      - name: Generate formula from release SHA256SUMS
+        if: steps.creds.outputs.bump == 'true'
+        env:
+          VERSION: ${{ needs.derive-version.outputs.version }}
+          TAG: ${{ github.ref_name }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          GH_TOKEN="${{ github.token }}" gh release download "$TAG" \
+            --repo "$REPO" --pattern SHA256SUMS --dir dist
+          python3 scripts/homebrew_formula.py --version "$VERSION" \
+            --sums dist/SHA256SUMS --repo "$REPO" -o typeanvil.rb
+
+      - name: Open PR on the tap
+        if: steps.creds.outputs.bump == 'true'
+        env:
+          VERSION: ${{ needs.derive-version.outputs.version }}
+        run: |
+          set -euo pipefail
+          git clone "https://x-access-token:${GH_TOKEN}@github.com/${TAP}.git" tap
+          cd tap
+          git checkout -b "bump-typeanvil-$VERSION"
+          mkdir -p Formula
+          cp ../typeanvil.rb Formula/typeanvil.rb
+          git config user.name "typeanvil-release[bot]"
+          git config user.email "release-bot@users.noreply.github.com"
+          git add Formula/typeanvil.rb
+          git commit -m "typeanvil $VERSION"
+          git push --force origin "bump-typeanvil-$VERSION"
+          gh pr create --repo "$TAP" --head "bump-typeanvil-$VERSION" \
+            --title "typeanvil $VERSION" \
+            --body "Automated bump from the release workflow." \
+            || echo "PR already exists"
+
   # npm distribution (CORE-136): publish the wrapper + platform packages with
   # the binaries from this same tag. Versions are stamped from the tag —
   # no hand-edited versions anywhere (npm spec, Behavior 3).
