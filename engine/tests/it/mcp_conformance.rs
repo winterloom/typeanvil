@@ -18,7 +18,7 @@ use serde_json::{json, Value};
 
 const TOOLS: [&str; 6] = ["render", "validate", "inspect_page", "capabilities", "explain", "templates"];
 const CONTRACT: &str = "1.1";
-const SCHEMA_BASE: &str = "https://typeanvil.com/schemas/mcp/v1/";
+const SCHEMA_BASE: &str = "https://typeanvil.io/schemas/mcp/v1/";
 
 fn repo() -> PathBuf {
     Path::new(env!("CARGO_MANIFEST_DIR")).parent().unwrap().to_path_buf()

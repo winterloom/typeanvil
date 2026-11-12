@@ -129,7 +129,7 @@ The contract stays normative for tool names, fields and error codes.
   set at build time, else `0.0.1+dev`. `font_bundle_version` is the render
   report's bundle fingerprint.
 - **S19.** `capabilities` reports `system_fonts: true`, every limit `null`
-  and `css.support_guide` = `https://typeanvil.dev/guides/css-support`.
+  and `css.support_guide` = `https://docs.typeanvil.io/guides/css-support`.
 
 ### JSON request mode
 

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/templates/invoice.schema.json",
+  "$id": "https://typeanvil.io/templates/invoice.schema.json",
   "title": "Invoice data",
   "type": "object",
   "required": ["number", "issue_date", "due_date", "currency", "seller", "buyer", "items"],

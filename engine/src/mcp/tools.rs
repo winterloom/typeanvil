@@ -24,7 +24,7 @@ const DEFAULT_PAGE_WIDTH: &str = "8.5in";
 const DEFAULT_PAGE_HEIGHT: &str = "11in";
 
 /// The CSS support guide `capabilities.css.support_guide` links to.
-const SUPPORT_GUIDE: &str = "https://typeanvil.dev/guides/css-support";
+const SUPPORT_GUIDE: &str = "https://docs.typeanvil.io/guides/css-support";
 
 pub struct Ctx<'a> {
     pub roots: &'a [PathBuf],

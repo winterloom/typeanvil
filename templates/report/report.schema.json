@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/templates/report.schema.json",
+  "$id": "https://typeanvil.io/templates/report.schema.json",
   "title": "Report data",
   "type": "object",
   "required": ["title", "author", "date", "sections"],

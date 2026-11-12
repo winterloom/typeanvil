@@ -13,7 +13,7 @@ const config: Config = {
   // with @docusaurus/theme-mermaid before enabling.
 
   // Production URL — placeholder until TypeAnvil has a domain.
-  url: 'https://typeanvil.dev',
+  url: 'https://docs.typeanvil.io',
   baseUrl: '/',
   favicon: 'img/favicon.ico',
   headTags: [

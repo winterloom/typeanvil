@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/schemas/mcp/v1/render.output.schema.json",
+  "$id": "https://typeanvil.io/schemas/mcp/v1/render.output.schema.json",
   "title": "render — output",
   "type": "object",
   "required": ["environment", "page_count", "byte_size", "sha256", "artifact", "diagnostics"],

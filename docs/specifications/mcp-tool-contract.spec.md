@@ -25,7 +25,7 @@ dependencies:
 
 TypeAnvil reaches an agent in two ways. The local server (`typeanvil mcp`)
 runs as a child process over stdio. The cloud server (for example
-`mcp.typeanvil.com`) runs as a remote MCP server over HTTPS.
+`mcp.typeanvil.io`) runs as a remote MCP server over HTTPS.
 
 Both servers shall expose the same tools with the same names, inputs and
 result shapes. A prompt or workflow written against one works against the
@@ -382,7 +382,7 @@ A contract test suite shall exist and both servers shall pass it.
 1. Given the spec, when `scripts/validate_docs.py` runs (PyYAML installed),
    then it passes.
 2. Given `schemas/mcp/v1/`, when each file is loaded as JSON, then it
-   parses and carries a `$id` under `https://typeanvil.com/schemas/mcp/v1/`.
+   parses and carries a `$id` under `https://typeanvil.io/schemas/mcp/v1/`.
 3. Given the six tool names, when the schema directory is listed, then each
    has an `.input.schema.json` and an `.output.schema.json` file.
 4. Given a cloud `render` call with `document.path`, when the contract is

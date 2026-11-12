@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://typeanvil.com/schemas/mcp/v1/inspect_page.output.schema.json",
+  "$id": "https://typeanvil.io/schemas/mcp/v1/inspect_page.output.schema.json",
   "title": "inspect_page — output",
   "type": "object",
   "required": ["environment", "page", "page_count", "page_size", "boxes", "truncated"],
