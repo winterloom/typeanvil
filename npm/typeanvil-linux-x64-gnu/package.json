@@ -1,5 +1,5 @@
 {
-  "name": "@typeanvil/linux-x64-gnu",
+  "name": "@winterloom/typeanvil-linux-x64-gnu",
   "version": "0.0.0-staging",
   "description": "TypeAnvil native binary for Linux x64 (glibc)",
   "license": "AGPL-3.0-only",

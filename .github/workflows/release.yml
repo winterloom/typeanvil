@@ -358,27 +358,40 @@ jobs:
   # OPTIONAL: when it is absent the publish steps skip with a notice and the
   # job stays green (npm spec, Behavior 7). A tag therefore always produces
   # GitHub Release binaries, whether or not npm publishing is configured yet.
+  # npm (CORE-629). Two ways to authenticate:
+  #  - Trusted publishing (OIDC): set the repo variable
+  #    NPM_TRUSTED_PUBLISHING=true once every package has a trusted publisher
+  #    on npmjs.com. No secret is stored.
+  #  - NPM_TOKEN: a granular write token (90 days max). Needed for the FIRST
+  #    publish, because a trusted publisher can only be added to a package
+  #    that already exists.
+  # With neither, the job skips and stays green.
   npm-publish:
     needs: [derive-version, build]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      id-token: write   # OIDC for trusted publishing and --provenance
     env:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      NPM_TRUSTED_PUBLISHING: ${{ vars.NPM_TRUSTED_PUBLISHING }}
     steps:
       - name: Check npm credentials
         id: creds
         run: |
-          if [ -n "${NPM_TOKEN:-}" ]; then
+          if [ "${NPM_TRUSTED_PUBLISHING:-}" = "true" ] || [ -n "${NPM_TOKEN:-}" ]; then
             echo "publish=true" >> "$GITHUB_OUTPUT"
           else
             echo "publish=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::NPM_TOKEN is not set — skipping npm publish (binaries-only release)."
+            echo "::notice::No npm credentials (NPM_TRUSTED_PUBLISHING or NPM_TOKEN) — skipping npm publish (binaries-only release)."
           fi
 
       - uses: actions/checkout@v4
 
+      # Trusted publishing needs npm >= 11.5.1, which ships with Node 24.
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 24
           registry-url: https://registry.npmjs.org
 
       - name: Download all artifacts
@@ -428,19 +441,23 @@ jobs:
 
       # Platform packages first; the wrapper LAST — its optionalDependencies
       # must resolve against the registry at install time.
-      - name: Publish platform packages
+      # npm tries OIDC first and falls back to NODE_AUTH_TOKEN. A version that
+      # is already on the registry is skipped, so a re-run after a partial
+      # failure finishes the remaining packages instead of failing.
+      - name: Publish platform packages, then the wrapper
         if: steps.creds.outputs.publish == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ needs.derive-version.outputs.version }}
         run: |
+          set -euo pipefail
           for dir in npm/typeanvil-darwin-arm64 npm/typeanvil-darwin-x64 \
                      npm/typeanvil-linux-x64-gnu npm/typeanvil-linux-x64-musl \
-                     npm/typeanvil-linux-arm64-gnu; do
-            npm publish --access public "$dir"
+                     npm/typeanvil-linux-arm64-gnu npm/typeanvil; do
+            name=$(node -p "require('./$dir/package.json').name")
+            if npm view "$name@$VERSION" version >/dev/null 2>&1; then
+              echo "$name@$VERSION already published — skipping"
+              continue
+            fi
+            npm publish --provenance --access public "$dir"
           done
-
-      - name: Publish wrapper package
-        if: steps.creds.outputs.publish == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --access public npm/typeanvil
