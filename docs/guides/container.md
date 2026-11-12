@@ -24,10 +24,10 @@ Neither form adds engine logic. Both run the release binary unchanged, so the
 command line, flags and exit codes match the [CLI reference](./cli.md). To
 build the binary from source instead, see [Getting started](./getting-started.md).
 
-| Form | Status (checked 2026-10-14) |
+| Form | Status (checked 2026-11-12) |
 |---|---|
-| Container image | Published. `ghcr.io/winterloom/typeanvil` has tags `2026.9.3`, `2026.9.4` and `2026.9.5`. |
-| npm packages | **Not published yet.** `typeanvil` and `@winterloom/typeanvil-*` return 404 from the npm registry. |
+| Container image | Published. `ghcr.io/winterloom/typeanvil` has a tag per release, from `2026.9.3` to `2026.11.0`. |
+| npm packages | Published from `2026.11.0`: `typeanvil` and five `@winterloom/typeanvil-*` platform packages. |
 
 ## Container image
 
@@ -178,15 +178,10 @@ HTML file inside `/work`.
 
 ## npm packages
 
-:::caution[Not published yet]
-The npm packages exist in the repository's `npm/` directory but have not been
-published. `npm install typeanvil` will not work until a release publishes
-them. The release workflow publishes only when an `NPM_TOKEN` secret is
-configured. Without it, the workflow skips publishing with a notice and
-still produces the GitHub Release binaries. The rest of this section
-describes the packages as they are in the repository and in the
+Each release publishes the packages to npm with the same version as the
+release tag. The sources are in the repository's `npm/` directory; publishing
+is described in the
 [npm distribution spec](../specifications/npm-distribution.spec.md).
-:::
 
 ### Packages
 
@@ -214,8 +209,6 @@ The wrapper requires Node.js 18 or later (`engines.node: ">=18"`). Bun
 installs the same packages (`bun add typeanvil`).
 
 ### Command line
-
-Once the packages are published:
 
 ```bash
 npm install typeanvil

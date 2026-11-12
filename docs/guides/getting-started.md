@@ -177,14 +177,19 @@ release notes. The [Containers and packages](./container.md) guide and the
 [container image runbook](../operations/container-image.md) cover fonts,
 permissions, and troubleshooting.
 
-### npm package (not yet published)
+### npm or Bun
 
-The repository contains an npm wrapper package, `typeanvil` in `npm/`. It
-targets Node ≥ 18 and Bun and installs the native binary for your platform as
-an optional dependency. As of 2026-10-14 it is not on the npm registry: the
-release workflow skips npm publishing until a publish token is configured (see
-the [npm distribution specification](../specifications/npm-distribution.spec.md)).
-Until it is published, use a release binary or a source build.
+The `typeanvil` npm package installs the native binary for your platform as
+an optional dependency. It needs Node.js 18 or later, or Bun:
+
+```bash
+npx typeanvil --version       # run without installing
+npm install -g typeanvil      # or: bun add -g typeanvil
+```
+
+Supported platforms are macOS (Apple Silicon and Intel), Linux x64 (glibc and
+musl) and Linux arm64 (glibc). See [Containers and packages](./container.md#npm-packages)
+and the [npm distribution specification](../specifications/npm-distribution.spec.md).
 
 ## Next steps
 

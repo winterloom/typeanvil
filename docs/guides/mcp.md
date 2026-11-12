@@ -17,7 +17,7 @@ can then render, check and inspect documents itself. The server is a
 subcommand of the normal binary, so it needs no separate install:
 
 ```bash
-typeanvil mcp
+npx -y typeanvil mcp     # or, with TypeAnvil installed: typeanvil mcp
 ```
 
 The server talks MCP over stdio. It offers six tools:
@@ -49,11 +49,10 @@ The full contract is in
 
 ## Connect a client
 
-**The npm package is not published yet**, so the `npx` snippets below work
-only after it is. Until then, install a release binary (see
-[Getting started](./getting-started.md)), put `typeanvil` in `command`, and
-use `["mcp"]` as the arguments. For Claude Code:
-`claude mcp add typeanvil -- typeanvil mcp`.
+Each snippet starts the server with `npx`, which downloads the `typeanvil`
+npm package on first use (Node.js 18 or later). To use an installed binary
+instead (a global npm install, a release binary, or a source build), put
+`typeanvil` in `command` and use `["mcp"]` as the arguments.
 
 **Claude Code:**
 
@@ -90,7 +89,7 @@ can access. To limit it to a folder, add `--root` (you can use it more than
 once):
 
 ```bash
-typeanvil mcp --root ~/reports
+npx -y typeanvil mcp --root ~/reports
 ```
 
 A path outside every root then returns the error `PATH_OUTSIDE_ROOT`.
