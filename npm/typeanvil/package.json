@@ -32,10 +32,10 @@
     "README.md"
   ],
   "optionalDependencies": {
-    "@typeanvil/darwin-arm64": "0.0.0-staging",
-    "@typeanvil/darwin-x64": "0.0.0-staging",
-    "@typeanvil/linux-x64-gnu": "0.0.0-staging",
-    "@typeanvil/linux-x64-musl": "0.0.0-staging",
-    "@typeanvil/linux-arm64-gnu": "0.0.0-staging"
+    "@winterloom/typeanvil-darwin-arm64": "0.0.0-staging",
+    "@winterloom/typeanvil-darwin-x64": "0.0.0-staging",
+    "@winterloom/typeanvil-linux-x64-gnu": "0.0.0-staging",
+    "@winterloom/typeanvil-linux-x64-musl": "0.0.0-staging",
+    "@winterloom/typeanvil-linux-arm64-gnu": "0.0.0-staging"
   }
 }

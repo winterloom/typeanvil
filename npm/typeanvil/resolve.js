@@ -6,7 +6,7 @@
 // 1. TYPEANVIL_BIN env override (dev/CI).
 // 2. require.resolve of the platform package for the current
 //    os/arch/libc combination.
-// 3. Scan node_modules for any installed @typeanvil/* platform package
+// 3. Scan node_modules for any installed @winterloom/typeanvil-* platform package
 //    (covers hoisted/symlinked installs, e.g. Bun's global store).
 //
 // Throws Error with a human-readable message when no binary is found —
@@ -17,11 +17,11 @@ const fs = require('fs');
 
 // Rust target triple → npm platform package suffix.
 const PLATFORM_PACKAGES = {
-  'darwin-arm64': '@typeanvil/darwin-arm64',
-  'darwin-x64': '@typeanvil/darwin-x64',
-  'linux-x64-gnu': '@typeanvil/linux-x64-gnu',
-  'linux-x64-musl': '@typeanvil/linux-x64-musl',
-  'linux-arm64-gnu': '@typeanvil/linux-arm64-gnu',
+  'darwin-arm64': '@winterloom/typeanvil-darwin-arm64',
+  'darwin-x64': '@winterloom/typeanvil-darwin-x64',
+  'linux-x64-gnu': '@winterloom/typeanvil-linux-x64-gnu',
+  'linux-x64-musl': '@winterloom/typeanvil-linux-x64-musl',
+  'linux-arm64-gnu': '@winterloom/typeanvil-linux-arm64-gnu',
 };
 
 function currentPlatformKey() {
@@ -52,7 +52,7 @@ function platformPackageName() {
   if (!name) {
     throw new Error(
       `typeanvil: unsupported platform "${process.platform}-${process.arch}"` +
-        ` (no @typeanvil/* package exists for it).` +
+        ` (no @winterloom/typeanvil-* package exists for it).` +
         ` Supported: ${Object.keys(PLATFORM_PACKAGES).join(', ')}.`
     );
   }
@@ -97,7 +97,7 @@ function resolveBinary() {
   }
 
   // 3. Scan node_modules from this file's directory upward for ANY
-  //    @typeanvil/* package (hoisting/symlinks may install a differently
+  //    @winterloom/typeanvil-* package (hoisting/symlinks may install a differently
   //    keyed package than require.resolve expects).
   for (const candidate of Object.values(PLATFORM_PACKAGES)) {
     const bin = findInNodeModules(__dirname, candidate);

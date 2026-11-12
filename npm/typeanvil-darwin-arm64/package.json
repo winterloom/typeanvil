@@ -1,5 +1,5 @@
 {
-  "name": "@typeanvil/darwin-arm64",
+  "name": "@winterloom/typeanvil-darwin-arm64",
   "version": "0.0.0-staging",
   "description": "TypeAnvil native binary for macOS (Apple Silicon)",
   "license": "AGPL-3.0-only",

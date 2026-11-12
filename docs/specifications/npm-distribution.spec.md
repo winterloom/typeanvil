@@ -4,7 +4,7 @@ type: spec
 status: draft
 owner: maintainers
 created: 2026-09-04
-updated: 2026-09-27
+updated: 2026-11-11
 slug: /specifications/npm-distribution
 sidebar_position: 46
 tags: [npm, distribution, node, bun, release]
@@ -46,9 +46,9 @@ platform package per release target, each shipping its own binary.
 
 - `typeanvil` — wrapper: resolves + spawns the binary, exposes the CLI
   (`bin`) and a programmatic `render()`.
-- `@typeanvil/darwin-arm64`, `@typeanvil/darwin-x64`,
-  `@typeanvil/linux-x64-gnu`, `@typeanvil/linux-x64-musl`,
-  `@typeanvil/linux-arm64-gnu` — each ships only its platform binary.
+- `@winterloom/typeanvil-darwin-arm64`, `@winterloom/typeanvil-darwin-x64`,
+  `@winterloom/typeanvil-linux-x64-gnu`, `@winterloom/typeanvil-linux-x64-musl`,
+  `@winterloom/typeanvil-linux-arm64-gnu` — each ships only its platform binary.
 
 npm picks the matching platform package via its `os`/`cpu`/`libc` fields. A
 missing match surfaces a clear "unsupported platform" error from the wrapper
@@ -70,11 +70,11 @@ npm/
     index.js            — render() programmatic API
     resolve.js          — binary resolution + error surfacing
     README.md
-  typeanvil-darwin-arm64/    — @typeanvil/darwin-arm64
-  typeanvil-darwin-x64/      — @typeanvil/darwin-x64
-  typeanvil-linux-x64-gnu/   — @typeanvil/linux-x64-gnu
-  typeanvil-linux-x64-musl/  — @typeanvil/linux-x64-musl
-  typeanvil-linux-arm64-gnu/ — @typeanvil/linux-arm64-gnu
+  typeanvil-darwin-arm64/    — @winterloom/typeanvil-darwin-arm64
+  typeanvil-darwin-x64/      — @winterloom/typeanvil-darwin-x64
+  typeanvil-linux-x64-gnu/   — @winterloom/typeanvil-linux-x64-gnu
+  typeanvil-linux-x64-musl/  — @winterloom/typeanvil-linux-x64-musl
+  typeanvil-linux-arm64-gnu/ — @winterloom/typeanvil-linux-arm64-gnu
 ```
 
 Each platform package holds `bin/typeanvil` (the raw binary, executable bit
@@ -90,10 +90,10 @@ package name.
 ## Wrapper resolution order
 
 1. `process.env.TYPEANVIL_BIN` if set (override for dev/CI).
-2. `require.resolve('@typeanvil/<platform>/bin/typeanvil')` for the current
+2. `require.resolve('@winterloom/typeanvil-<platform>/bin/typeanvil')` for the current
    platform (os × arch × libc).
 3. Fallback: scan `typeanvil`'s own `node_modules` for any installed
-   `@typeanvil/*` platform package (covers hoisted/symlinked installs such as
+   `@winterloom/typeanvil-*` platform package (covers hoisted/symlinked installs such as
    Bun's global store).
 4. No binary found → print an "unsupported platform / omitted optional deps"
    error naming the platform and exit non-zero.
@@ -119,10 +119,17 @@ package name.
    `homepage` pointing at the GitHub repo.
 6. Platform packages shall declare `os`, `cpu` (and musl `libc`) so npm skips
    non-matching platforms at install time rather than at first run.
-7. The release workflow shall skip the npm publish steps and report a notice
-   when the `NPM_TOKEN` secret is absent, and shall publish only when the
-   secret is present. A tag without the secret still produces GitHub Release
+7. The release workflow shall publish when trusted publishing is enabled
+   (repository variable `NPM_TRUSTED_PUBLISHING=true`) or the `NPM_TOKEN`
+   secret is present. With neither, it shall skip the npm publish steps and
+   report a notice. A tag without credentials still produces GitHub Release
    binaries and a green workflow run.
+8. Platform packages shall be scoped to the `winterloom` npm organization,
+   which the project owns (`@winterloom/typeanvil-<platform>`). The wrapper
+   keeps the unscoped name `typeanvil`.
+9. Every publish shall carry npm provenance (`--provenance`). A version that is
+   already on the registry shall be skipped, so a re-run completes a partial
+   publish.
 
 ## Publishing flow (release workflow)
 
@@ -137,17 +144,28 @@ after `release`:
    optionalDependencies must resolve at publish time).
 5. The wrapper package's version is stamped identically to the tag.
 
-`NODE_AUTH_TOKEN` comes from a repository secret (`NPM_TOKEN`). The secret is
-optional: when it is absent the job publishes nothing and reports a notice, so
-the release stays green and the npm packages stay unpublished until the token
-is added. Nothing else in the workflow depends on it.
+## Authentication (CORE-629)
 
-## Private-repo note
+npm revoked classic tokens on 2025-12-09. Granular write tokens last at most
+90 days. npm recommends trusted publishing: GitHub Actions proves its identity
+with OIDC and no secret is stored. The job has `id-token: write` and uses
+Node 24 (npm ≥ 11.5.1, required for trusted publishing). npm tries OIDC first
+and falls back to `NODE_AUTH_TOKEN` (`NPM_TOKEN`).
 
-Platform packages ship the binary INSIDE the npm tarball, so `npm install`
-never needs GitHub artifacts. npm publishing itself works from a private
-repo; only the `repository` URL resolution is affected until the repo flips
-public. Local dev + `npm pack` dry-runs proceed before that.
+A trusted publisher can be added only to a package that already exists, so
+setup has two phases:
+
+1. **Bootstrap.** The owner creates a granular write token for the
+   `winterloom` org and stores it as the `NPM_TOKEN` secret. The next release
+   publishes all six packages with the token.
+2. **Switch to OIDC.** On npmjs.com, for each of the six packages, the owner
+   adds a trusted publisher: GitHub Actions, repository `winterloom/typeanvil`,
+   workflow `release.yml`. Then they set the repository variable
+   `NPM_TRUSTED_PUBLISHING=true` and delete the `NPM_TOKEN` secret and the
+   token.
+
+Platform packages ship the binary inside the npm tarball, so `npm install`
+never needs GitHub artifacts.
 
 ## Acceptance Criteria
 

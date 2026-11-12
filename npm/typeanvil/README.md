@@ -11,9 +11,9 @@ npm install typeanvil
 bun add typeanvil
 ```
 
-The right platform binary (`@typeanvil/darwin-arm64`, `@typeanvil/darwin-x64`,
-`@typeanvil/linux-x64-gnu`, `@typeanvil/linux-x64-musl`,
-`@typeanvil/linux-arm64-gnu`) is installed automatically as an optional
+The right platform binary (`@winterloom/typeanvil-darwin-arm64`, `@winterloom/typeanvil-darwin-x64`,
+`@winterloom/typeanvil-linux-x64-gnu`, `@winterloom/typeanvil-linux-x64-musl`,
+`@winterloom/typeanvil-linux-arm64-gnu`) is installed automatically as an optional
 dependency.
 
 ## CLI

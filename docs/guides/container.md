@@ -27,7 +27,7 @@ build the binary from source instead, see [Getting started](./getting-started.md
 | Form | Status (checked 2026-10-14) |
 |---|---|
 | Container image | Published. `ghcr.io/winterloom/typeanvil` has tags `2026.9.3`, `2026.9.4` and `2026.9.5`. |
-| npm packages | **Not published yet.** `typeanvil` and `@typeanvil/*` return 404 from the npm registry. |
+| npm packages | **Not published yet.** `typeanvil` and `@winterloom/typeanvil-*` return 404 from the npm registry. |
 
 ## Container image
 
@@ -197,11 +197,11 @@ binary at `bin/typeanvil`.
 | Package | Platform |
 |---|---|
 | `typeanvil` | The wrapper. It finds and runs the binary, provides the `typeanvil` command and exports `render()`. |
-| `@typeanvil/darwin-arm64` | macOS, Apple silicon |
-| `@typeanvil/darwin-x64` | macOS, Intel |
-| `@typeanvil/linux-x64-gnu` | Linux x64, glibc |
-| `@typeanvil/linux-x64-musl` | Linux x64, musl (static) |
-| `@typeanvil/linux-arm64-gnu` | Linux arm64, glibc |
+| `@winterloom/typeanvil-darwin-arm64` | macOS, Apple silicon |
+| `@winterloom/typeanvil-darwin-x64` | macOS, Intel |
+| `@winterloom/typeanvil-linux-x64-gnu` | Linux x64, glibc |
+| `@winterloom/typeanvil-linux-x64-musl` | Linux x64, musl (static) |
+| `@winterloom/typeanvil-linux-arm64-gnu` | Linux arm64, glibc |
 
 Other platforms have no package, including Windows and Linux arm64 with musl.
 Platform packages declare `os` and `cpu` fields, and the musl package also
@@ -265,7 +265,7 @@ const { pdf, code } = await render([
    treated as musl. An OS/CPU pair with no package fails here with an
    "unsupported platform" message that lists the supported platforms.
 3. A search upward through `node_modules` directories for any
-   `@typeanvil/*` platform package. This covers hoisted and symlinked
+   `@winterloom/typeanvil-*` platform package. This covers hoisted and symlinked
    installs.
 4. If nothing is found, a "native binary not found" message explains that the
    optional dependency was skipped (for example by
