@@ -39,7 +39,27 @@ TypeAnvil's expected behavior.
 
 ## Install
 
-### Release binary (recommended)
+### npm or Bun (quickest)
+
+Run it without installing:
+
+```bash
+npx typeanvil --version
+bunx typeanvil --version
+```
+
+Or install it globally, which puts `typeanvil` on your `PATH`:
+
+```bash
+npm install -g typeanvil     # or: bun add -g typeanvil
+typeanvil --version
+```
+
+The `typeanvil` package installs only the native binary for your platform
+(macOS arm64/x64, Linux x64 glibc/musl, Linux arm64 glibc). It needs Node.js 18
+or later, or Bun. There is no Windows package.
+
+### Release binary
 
 [GitHub Releases](https://github.com/winterloom/typeanvil/releases) has one
 archive per platform plus a `SHA256SUMS` file. Targets:
@@ -89,8 +109,7 @@ docker run --rm -v "$PWD:/work" ghcr.io/winterloom/typeanvil:2026.11.0 \
   render /work/input.html --page-width 8.5in --page-height 11in -o /work/output.pdf
 ```
 
-See [Containers and packages](docs/guides/container.md). The npm package in
-`npm/` is not published yet, so `npx typeanvil` does not work.
+See [Containers and packages](docs/guides/container.md).
 
 ### Fonts
 
@@ -215,17 +234,21 @@ Every flag, default, and exit code is in the [CLI reference](docs/guides/cli.md)
 TypeAnvil is designed as a feedback loop for agents: write the document,
 render it, read back what went wrong, fix it, repeat.
 
-**MCP server.** Add the installed binary to your client. Claude Code:
+**MCP server.** Nothing to install first: `npx` fetches TypeAnvil when the
+client starts the server. Claude Code:
 
 ```bash
-claude mcp add typeanvil -- typeanvil mcp --root "$HOME/reports"
+claude mcp add typeanvil -- npx -y typeanvil mcp --root "$HOME/reports"
 ```
 
 Claude Desktop, Cursor and other JSON-configured clients:
 
 ```json
-{ "mcpServers": { "typeanvil": { "command": "typeanvil", "args": ["mcp", "--root", "/path/to/reports"] } } }
+{ "mcpServers": { "typeanvil": { "command": "npx", "args": ["-y", "typeanvil", "mcp", "--root", "/path/to/reports"] } } }
 ```
+
+With a global install or a release binary, use `typeanvil` as the command and
+drop `-y typeanvil` from the arguments.
 
 `--root` limits file access to that folder (repeatable). Leave it out to allow
 every path the user can read. The server offers six tools: `render`,
@@ -320,7 +343,7 @@ link stays stable.
 | `templates/` | Data templates (invoice, report) |
 | `skills/` | Bundled agent skill |
 | `schemas/mcp/` | MCP tool JSON Schemas |
-| `npm/` | npm wrapper packages (not yet published) |
+| `npm/` | npm packages (`typeanvil` and the per-platform binaries) |
 | `corpus/` | Real-world documents for regression and showcase |
 | `benchmarks/` | Engine benchmark scripts and results |
 
