@@ -459,5 +459,5 @@ jobs:
               echo "$name@$VERSION already published — skipping"
               continue
             fi
-            npm publish --provenance --access public "$dir"
+            npm publish --provenance --access public "./$dir"   # ./ needed: bare a/b is GitHub user/repo
           done
