@@ -357,6 +357,10 @@ link stays stable.
 - **Run the gate** before you open a PR: `python3 scripts/gate.py`.
 - **Land through a PR.** Release branches reject direct pushes;
   `scripts/land.py` opens the PR and enables auto-merge.
+- **Agent work is opt-in.** Add the `agent` label to an issue to hand it to
+  an agent. Unlabelled issues, and issues labelled `agent-excluded` (or under
+  an epic with that label), are never picked up. If the agent needs a
+  decision, it asks in a comment on the issue; reply there.
 - **Sign the CLA.** Read [CLA.md](CLA.md).
 
 Full guidelines:
